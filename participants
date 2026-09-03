@@ -1,0 +1,14 @@
+CREATE TABLE Participants
+(
+    ParticipantID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT NOT NULL UNIQUE,
+    DateOfBirth DATE NULL,
+    EmergencyContactName NVARCHAR(100) NULL,
+    EmergencyContactPhone NVARCHAR(20) NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Participants_Users
+        FOREIGN KEY (UserID)
+        REFERENCES Users(UserID)
+);
+GO
