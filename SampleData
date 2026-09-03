@@ -1,0 +1,27 @@
+INSERT INTO Users
+    (FirstName, LastName, Email, PasswordHash, Phone, Role)
+VALUES
+    ('Thabo', 'Mokoena', 'thabo@raceday.co.za', 'HASHED_PASSWORD_1', '0821111111', 'Organiser'),
+    ('Lerato', 'Dlamini', 'lerato@raceday.co.za', 'HASHED_PASSWORD_2', '0832222222', 'Organiser');
+GO
+
+INSERT INTO Organisers
+    (UserID, OrganisationName)
+VALUES
+    (1, 'RaceDay South Africa'),
+    (2, 'Active Events SA');
+GO
+
+INSERT INTO Users
+    (FirstName, LastName, Email, PasswordHash, Phone, Role)
+VALUES
+    ('John', 'Smith', 'john@example.com', 'HASHED_PASSWORD_3', '0843333333', 'Participant'),
+    ('Nomsa', 'Nkosi', 'nomsa@example.com', 'HASHED_PASSWORD_4', '0854444444', 'Participant');
+GO
+
+INSERT INTO Participants
+    (UserID, DateOfBirth, EmergencyContactName, EmergencyContactPhone)
+VALUES
+    (3, '2000-05-15', 'Mary Smith', '0865555555'),
+    (4, '1998-10-20', 'Peter Nkosi', '0876666666');
+GO
