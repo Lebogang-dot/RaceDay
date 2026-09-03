@@ -1,0 +1,31 @@
+CREATE TABLE Categories
+(
+    CategoryID INT IDENTITY(1,1) PRIMARY KEY,
+    EventID INT NOT NULL,
+    CategoryName NVARCHAR(100) NOT NULL,
+    MinAge INT NULL,
+    MaxAge INT NULL,
+    DistanceKm DECIMAL(6,2) NULL,
+
+    CONSTRAINT FK_Categories_Events
+        FOREIGN KEY (EventID)
+        REFERENCES Events(EventID)
+        ON DELETE CASCADE,
+
+    CONSTRAINT CK_Categories_Age
+        CHECK
+        (
+            (MinAge IS NULL OR MinAge >= 0)
+            AND
+            (MaxAge IS NULL OR MaxAge >= 0)
+            AND
+            (MinAge IS NULL OR MaxAge IS NULL OR MinAge <= MaxAge)
+        ),
+
+    CONSTRAINT CK_Categories_Distance
+        CHECK (DistanceKm IS NULL OR DistanceKm > 0),
+
+    CONSTRAINT UQ_Categories_Event_Name
+        UNIQUE (EventID, CategoryName)
+);
+GO
