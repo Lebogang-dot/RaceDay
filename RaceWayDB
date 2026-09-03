@@ -1,8 +1,7 @@
 CREATE DATABASE RaceDayDB;
 GO
 
-USE RaceWayDB
-GO
+
 
 CREATE TABLE Users
 (
