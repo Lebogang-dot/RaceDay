@@ -1,0 +1,241 @@
+CREATE DATABASE RaceDayDB;
+GO
+
+CREATE TABLE Users
+(
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    FirstName NVARCHAR(50) NOT NULL,
+    LastName NVARCHAR(50) NOT NULL,
+    Email NVARCHAR(150) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    Phone NVARCHAR(20) NULL,
+    Role NVARCHAR(20) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT CK_Users_Role
+        CHECK (Role IN ('Organiser', 'Participant'))
+);
+GO
+
+CREATE TABLE Organisers
+(
+    OrganiserID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT NOT NULL UNIQUE,
+    OrganisationName NVARCHAR(150) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Organisers_Users
+        FOREIGN KEY (UserID)
+        REFERENCES Users(UserID)
+);
+GO
+
+CREATE TABLE Participants
+(
+    ParticipantID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT NOT NULL UNIQUE,
+    DateOfBirth DATE NULL,
+    EmergencyContactName NVARCHAR(100) NULL,
+    EmergencyContactPhone NVARCHAR(20) NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Participants_Users
+        FOREIGN KEY (UserID)
+        REFERENCES Users(UserID)
+);
+GO
+
+CREATE TABLE Events
+(
+    EventID INT IDENTITY(1,1) PRIMARY KEY,
+    OrganiserID INT NOT NULL,
+    EventName NVARCHAR(150) NOT NULL,
+    Description NVARCHAR(1000) NULL,
+    EventDate DATE NOT NULL,
+    Location NVARCHAR(200) NOT NULL,
+    Distance DECIMAL(6,2) NOT NULL,
+    EventType NVARCHAR(20) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Events_Organisers
+        FOREIGN KEY (OrganiserID)
+        REFERENCES Organisers(OrganiserID),
+
+    CONSTRAINT CK_Events_EventType
+        CHECK (EventType IN ('Run', 'Walk', 'Cycle')),
+
+    CONSTRAINT CK_Events_Distance
+        CHECK (Distance > 0)
+);
+GO
+
+CREATE TABLE Categories
+(
+    CategoryID INT IDENTITY(1,1) PRIMARY KEY,
+    EventID INT NOT NULL,
+    CategoryName NVARCHAR(100) NOT NULL,
+    MinAge INT NULL,
+    MaxAge INT NULL,
+    DistanceKm DECIMAL(6,2) NULL,
+
+    CONSTRAINT FK_Categories_Events
+        FOREIGN KEY (EventID)
+        REFERENCES Events(EventID)
+        ON DELETE CASCADE,
+
+    CONSTRAINT CK_Categories_Age
+        CHECK
+        (
+            (MinAge IS NULL OR MinAge >= 0)
+            AND
+            (MaxAge IS NULL OR MaxAge >= 0)
+            AND
+            (MinAge IS NULL OR MaxAge IS NULL OR MinAge <= MaxAge)
+        ),
+
+    CONSTRAINT CK_Categories_Distance
+        CHECK (DistanceKm IS NULL OR DistanceKm > 0),
+
+    CONSTRAINT UQ_Categories_Event_Name
+        UNIQUE (EventID, CategoryName)
+);
+GO
+
+CREATE TABLE Enrollments
+(
+    EnrollmentID INT IDENTITY(1,1) PRIMARY KEY,
+    ParticipantID INT NOT NULL,
+    EventID INT NOT NULL,
+    CategoryID INT NOT NULL,
+    EnrollmentDate DATETIME2 NOT NULL DEFAULT GETDATE(),
+    Status NVARCHAR(20) NOT NULL DEFAULT 'Registered',
+
+    CONSTRAINT FK_Enrollments_Participants
+        FOREIGN KEY (ParticipantID)
+        REFERENCES Participants(ParticipantID),
+
+    CONSTRAINT FK_Enrollments_Events
+        FOREIGN KEY (EventID)
+        REFERENCES Events(EventID),
+
+    CONSTRAINT FK_Enrollments_Categories
+        FOREIGN KEY (CategoryID)
+        REFERENCES Categories(CategoryID),
+
+    CONSTRAINT CK_Enrollments_Status
+        CHECK (Status IN ('Registered', 'Completed', 'Cancelled')),
+
+    CONSTRAINT UQ_Enrollment_Participant_Event
+        UNIQUE (ParticipantID, EventID)
+);
+GO
+
+CREATE TABLE Results
+(
+    ResultID INT IDENTITY(1,1) PRIMARY KEY,
+    EnrollmentID INT NOT NULL UNIQUE,
+    FinishTime TIME NOT NULL,
+    FinishingPosition INT NOT NULL,
+    RecordedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Results_Enrollments
+        FOREIGN KEY (EnrollmentID)
+        REFERENCES Enrollments(EnrollmentID)
+        ON DELETE CASCADE,
+
+    CONSTRAINT CK_Results_Position
+        CHECK (FinishingPosition > 0)
+);
+GO
+
+INSERT INTO Users
+    (FirstName, LastName, Email, PasswordHash, Phone, Role)
+VALUES
+    ('Thabo', 'Mokoena', 'thabo@raceday.co.za', 'HASHED_PASSWORD_1', '0821111111', 'Organiser'),
+    ('Lerato', 'Dlamini', 'lerato@raceday.co.za', 'HASHED_PASSWORD_2', '0832222222', 'Organiser');
+GO
+
+INSERT INTO Organisers
+    (UserID, OrganisationName)
+VALUES
+    (1, 'RaceDay South Africa'),
+    (2, 'Active Events SA');
+GO
+
+INSERT INTO Users
+    (FirstName, LastName, Email, PasswordHash, Phone, Role)
+VALUES
+    ('John', 'Smith', 'john@example.com', 'HASHED_PASSWORD_3', '0843333333', 'Participant'),
+    ('Nomsa', 'Nkosi', 'nomsa@example.com', 'HASHED_PASSWORD_4', '0854444444', 'Participant');
+GO
+
+INSERT INTO Participants
+    (UserID, DateOfBirth, EmergencyContactName, EmergencyContactPhone)
+VALUES
+    (3, '2000-05-15', 'Mary Smith', '0865555555'),
+    (4, '1998-10-20', 'Peter Nkosi', '0876666666');
+GO
+
+INSERT INTO Events
+    (OrganiserID, EventName, Description, EventDate, Location, Distance, EventType)
+VALUES
+    (
+        1,
+        'Cape Town 10km Run',
+        'Annual 10km road running event.',
+        '2026-10-10',
+        'Cape Town Stadium',
+        10.00,
+        'Run'
+    ),
+    (
+        1,
+        'Johannesburg Community Walk',
+        'Family-friendly community walking event.',
+        '2026-11-07',
+        'Gold Reef City',
+        5.00,
+        'Walk'
+    ),
+    (
+        2,
+        'Durban Cycle Challenge',
+        'Competitive cycling event along the Durban coastline.',
+        '2026-12-05',
+        'Durban Beachfront',
+        21.00,
+        'Cycle'
+    );
+GO
+
+INSERT INTO Categories
+    (EventID, CategoryName, MinAge, MaxAge, DistanceKm)
+VALUES
+    (1, 'Under 20', 13, 19, 10.00),
+    (1, 'Senior', 20, NULL, 10.00),
+    (1, '10km Open', NULL, NULL, 10.00),
+
+    (2, 'Under 20', 13, 19, 5.00),
+    (2, 'Senior', 20, NULL, 5.00),
+    (2, '5km Family', NULL, NULL, 5.00),
+
+    (3, 'Junior Cyclist', 16, 19, 21.00),
+    (3, 'Senior Cyclist', 20, NULL, 21.00),
+    (3, '21km Open', NULL, NULL, 21.00);
+GO
+
+INSERT INTO Enrollments
+    (ParticipantID, EventID, CategoryID, Status)
+VALUES
+    (1, 1, 2, 'Completed'),
+    (2, 1, 2, 'Completed'),
+    (1, 2, 5, 'Registered'),
+    (2, 3, 8, 'Registered');
+GO
+
+INSERT INTO Results
+    (EnrollmentID, FinishTime, FinishingPosition)
+VALUES
+    (1, '01:02:35', 12),
+    (2, '01:10:42', 24);
+GO
