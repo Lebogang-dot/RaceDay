@@ -1,0 +1,23 @@
+CREATE TABLE Events
+(
+    EventID INT IDENTITY(1,1) PRIMARY KEY,
+    OrganiserID INT NOT NULL,
+    EventName NVARCHAR(150) NOT NULL,
+    Description NVARCHAR(1000) NULL,
+    EventDate DATE NOT NULL,
+    Location NVARCHAR(200) NOT NULL,
+    Distance DECIMAL(6,2) NOT NULL,
+    EventType NVARCHAR(20) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Events_Organisers
+        FOREIGN KEY (OrganiserID)
+        REFERENCES Organisers(OrganiserID),
+
+    CONSTRAINT CK_Events_EventType
+        CHECK (EventType IN ('Run', 'Walk', 'Cycle')),
+
+    CONSTRAINT CK_Events_Distance
+        CHECK (Distance > 0)
+);
+GO
