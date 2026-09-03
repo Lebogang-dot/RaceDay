@@ -1,0 +1,17 @@
+CREATE TABLE Results
+(
+    ResultID INT IDENTITY(1,1) PRIMARY KEY,
+    EnrollmentID INT NOT NULL UNIQUE,
+    FinishTime TIME NOT NULL,
+    FinishingPosition INT NOT NULL,
+    RecordedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Results_Enrollments
+        FOREIGN KEY (EnrollmentID)
+        REFERENCES Enrollments(EnrollmentID)
+        ON DELETE CASCADE,
+
+    CONSTRAINT CK_Results_Position
+        CHECK (FinishingPosition > 0)
+);
+GO
