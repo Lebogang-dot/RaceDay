@@ -1,0 +1,28 @@
+CREATE TABLE Enrollments
+(
+    EnrollmentID INT IDENTITY(1,1) PRIMARY KEY,
+    ParticipantID INT NOT NULL,
+    EventID INT NOT NULL,
+    CategoryID INT NOT NULL,
+    EnrollmentDate DATETIME2 NOT NULL DEFAULT GETDATE(),
+    Status NVARCHAR(20) NOT NULL DEFAULT 'Registered',
+
+    CONSTRAINT FK_Enrollments_Participants
+        FOREIGN KEY (ParticipantID)
+        REFERENCES Participants(ParticipantID),
+
+    CONSTRAINT FK_Enrollments_Events
+        FOREIGN KEY (EventID)
+        REFERENCES Events(EventID),
+
+    CONSTRAINT FK_Enrollments_Categories
+        FOREIGN KEY (CategoryID)
+        REFERENCES Categories(CategoryID),
+
+    CONSTRAINT CK_Enrollments_Status
+        CHECK (Status IN ('Registered', 'Completed', 'Cancelled')),
+
+    CONSTRAINT UQ_Enrollment_Participant_Event
+        UNIQUE (ParticipantID, EventID)
+);
+GO
